@@ -435,35 +435,15 @@ print(f"Reasoning: {result['reasoning']}")
 ### Training Results
 
 - **Dataset Size**: 15,000 balanced samples
-- **Training Time**: ~2-3 hours on single GPU
-- **Final Training Loss**: <0.1
-- **Convergence**: Stable after epoch 2
-
-### Model Performance
-
-- **Rule Compliance**: 99.9% adherence to business rules
-- **Response Format**: 100% valid JSON output
-- **Reasoning Quality**: Comprehensive explanations for all decisions
-- **Inference Speed**: <100ms per application
-- **Memory Usage**: ~4GB GPU memory
-
-### Business Impact
-
-- **Processing Speed**: 10x faster than manual review
-- **Consistency**: 100% rule adherence vs. 85% human consistency
-- **Audit Trail**: Complete decision reasoning for regulatory compliance
-- **Scalability**: Handles 1000+ applications per minute
+- **Training Time**: ~24 minutes on single GPU
+- **Total Steps**: 9,000 steps (3 epochs × 3,000 steps)
+- **Final Training Loss**: 0.0019
+- **Final Validation Loss**: 0.0022
+- **Loss Reduction**: 96.4% improvement (0.2231 → 0.0019)
+- **Convergence**: Rapid convergence achieved after epoch 1
+- **Checkpoints**: 18 saved checkpoints (every 500 steps)
 
 ---
-
-## 📋 Requirements
-
-### System Requirements
-
-- **Python**: 3.8 or higher
-- **GPU**: NVIDIA GPU with 8GB+ VRAM (recommended)
-- **RAM**: 16GB+ system memory
-- **Storage**: 10GB+ free space
 
 ### Core Dependencies
 
