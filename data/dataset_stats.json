@@ -1,0 +1,18 @@
+{
+  "total_samples": 15000,
+  "class_distribution": {
+    "APPROVE": 5000,
+    "REJECT": 5000,
+    "FLAG_REVIEW": 5000
+  },
+  "split_sizes": {
+    "train": 12000,
+    "val": 1500,
+    "test": 1500
+  },
+  "generation_efficiency": {
+    "APPROVE": "80.3%",
+    "REJECT": "99.7%",
+    "FLAG_REVIEW": "80.5%"
+  }
+}
