@@ -208,7 +208,8 @@ datasets/
 *.csv
 *.jsonl
 *.json
-# But keep example or small config files
+# But keep small config files and rules
+!data/rules.json
 !*config*.json
 !*example*.json
 !*sample*.json
