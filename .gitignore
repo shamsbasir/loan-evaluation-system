@@ -192,9 +192,15 @@ $RECYCLE.BIN/
 *.onnx
 *.pb
 *.tflite
-checkpoints/
-models/
 *.safetensors
+
+# Model directories and all contents
+models/
+models/*
+models/**/*
+checkpoints/
+checkpoints/*
+checkpoints/**/*
 
 # Datasets (can be large)
 data/
