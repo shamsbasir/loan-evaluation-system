@@ -7,6 +7,7 @@ A production-ready automated loan evaluation system powered by fine-tuned LLaMA 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 [![Transformers](https://img.shields.io/badge/🤗%20Transformers-4.30+-yellow.svg)](https://huggingface.co/transformers/)
+[![Model](https://img.shields.io/badge/🤗%20Model-shams1992%2FLlama--3.2--1B--Instruct-orange.svg)](https://huggingface.co/shams1992/Llama-3.2-1B-Instruct)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -113,6 +114,23 @@ loan-evaluation-system/
 
 ## 🚀 Quick Start
 
+### 0. Pre-trained Model Access
+
+The fine-tuned model is available on Hugging Face Hub:
+**🤗 [shams1992/Llama-3.2-1B-Instruct](https://huggingface.co/shams1992/Llama-3.2-1B-Instruct)**
+
+```bash
+# Option 1: Use the pre-trained model directly
+python -c "
+from transformers import AutoTokenizer, AutoModelForCausalLM
+model = AutoModelForCausalLM.from_pretrained('shams1992/Llama-3.2-1B-Instruct')
+tokenizer = AutoTokenizer.from_pretrained('shams1992/Llama-3.2-1B-Instruct')
+print('✅ Pre-trained model loaded successfully!')
+"
+
+# Option 2: Skip to step 4 (inference) if using pre-trained model
+```
+
 ### 1. Environment Setup
 
 ```bash
@@ -128,7 +146,9 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Generate Training Data
+### 2. Generate Training Data (Optional)
+
+> **Note**: Skip this step if using the pre-trained model from Hugging Face Hub
 
 ```bash
 # Generate balanced synthetic dataset
@@ -143,7 +163,9 @@ print(f'Training samples: {len(samples)}')
 "
 ```
 
-### 3. Train the Model
+### 3. Train the Model (Optional)
+
+> **Note**: Skip this step if using the pre-trained model from Hugging Face Hub
 
 ```bash
 # Start training with default configuration
@@ -224,8 +246,12 @@ jupyter notebook notebooks/inference_demo.ipynb
 
 ```python
 MODEL_CONFIG = {
-    "model_id": "unsloth/Llama-3.2-1B-Instruct",
-    "local_dir": "./models/Llama-3.2-1B-Instruct",
+    # Use pre-trained model from Hugging Face Hub
+    "model_id": "shams1992/Llama-3.2-1B-Instruct",
+
+    # Or use base model for training
+    # "model_id": "unsloth/Llama-3.2-1B-Instruct",
+
     "torch_dtype": "bfloat16",
     "device_map": "auto"
 }
@@ -259,7 +285,102 @@ DATA_CONFIG = {
 
 ---
 
-## 🧪 Testing & Evaluation
+## � Model Deployment
+
+### Hugging Face Hub Access
+
+The fine-tuned loan evaluation model is publicly available on Hugging Face Hub:
+
+**Model Repository**: [`shams1992/Llama-3.2-1B-Instruct`](https://huggingface.co/shams1992/Llama-3.2-1B-Instruct)
+
+### Quick Model Usage
+
+```python
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+import json
+
+# Load the fine-tuned model
+model_id = "shams1992/Llama-3.2-1B-Instruct"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
+
+# Example loan application
+application = {
+    "age": 35,
+    "credit_score": 720,
+    "annual_income_usd": 75000,
+    "debt_to_income_ratio_percent": 30.0,
+    "employment_status": "employed_full_time",
+    "current_employment_duration_months": 36,
+    "residency_status": "US_Citizen",
+    "has_bankruptcy_recent": False,
+    "requested_amount_usd": 30000,
+    "has_verifiable_bank_account": True
+}
+
+# Create the prompt
+system_prompt = """You are a loan evaluator following these rules strictly:
+
+- Applicant age must be at least 18 years old → else REJECT
+- Credit score must be at least 670 → else REJECT
+- Annual income must be at least $30,000 → else REJECT
+- Debt-to-income ratio must be at most 40% → else REJECT
+- Employment status must be one of employed_full_time, employed_part_time, self_employed, retired → else REJECT
+- Employment duration in current role must be at least 6 months → else FLAG_REVIEW
+- Residency status must be US_Citizen or Permanent_Resident → else REJECT
+- Applicant must not have filed for bankruptcy in the last 7 years → else REJECT
+- Requested loan amount must be at most 50% of annual income → else FLAG_REVIEW
+- Applicant must have a verifiable bank account → else REJECT
+
+Given an application, output a JSON object with:
+
+{
+  "result": "APPROVE", "REJECT", or "FLAG_REVIEW",
+  "reasoning": "Explain which rules passed or failed and why the result was chosen."
+}
+
+Do not output anything else."""
+
+messages = [
+    {"role": "system", "content": system_prompt},
+    {"role": "user", "content": json.dumps(application)}
+]
+
+# Generate response
+input_text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+inputs = tokenizer(input_text, return_tensors="pt").to(model.device)
+
+with torch.no_grad():
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=512,
+        temperature=0.1,
+        do_sample=True,
+        pad_token_id=tokenizer.eos_token_id
+    )
+
+response = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
+print("Model Decision:", response)
+```
+
+### Model Specifications
+
+- **Base Model**: unsloth/Llama-3.2-1B-Instruct
+- **Fine-tuning**: Specialized for loan evaluation rules
+- **Training Data**: 15,000 balanced synthetic loan applications
+- **Input Format**: JSON application data
+- **Output Format**: Structured JSON decision with reasoning
+- **Languages**: English
+- **Use Case**: Financial services, loan processing automation
+
+---
+
+## �🧪 Testing & Evaluation
 
 ### Running Evaluations
 
@@ -282,8 +403,11 @@ jupyter notebook notebooks/model_experiments.ipynb
 ```python
 from src.inference import LoanEvaluator
 
-# Initialize evaluator
-evaluator = LoanEvaluator("outputs/final_model")
+# Initialize evaluator with pre-trained model
+evaluator = LoanEvaluator("shams1992/Llama-3.2-1B-Instruct")
+
+# Or use local model if trained locally
+# evaluator = LoanEvaluator("outputs/final_model")
 
 # Test single application
 application = {
