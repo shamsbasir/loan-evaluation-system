@@ -210,6 +210,10 @@ datasets/
 *.json
 # But keep small config files and rules
 !data/rules.json
+!data/dataset_stats.json
+!data/train.jsonl
+!data/val.jsonl  
+!data/test.jsonl
 !*config*.json
 !*example*.json
 !*sample*.json
